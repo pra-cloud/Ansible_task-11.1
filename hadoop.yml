@@ -1,0 +1,49 @@
+- hosts: namenode
+  vars:
+     - namenode_folder: "/nn1"
+  tasks:
+  - name: "copy hadoop and java software in name  node"
+    copy:
+       dest: "/root"
+       src: "hadoop-1.2.1-1.x86_64.rpm"
+
+  - name: "copy java-jdk in namenode"
+    copy:
+       dest: "/root"
+       src: "jdk-8u171-linux-x64.rpm"
+
+  - name: "install jdk in namenode"
+    shell: "rpm -ivh /root/jdk-8u171-linux-x64.rpm"
+    ignore_errors: yes
+  - name: "install hadoop"
+    shell: "rpm -ivh /root/hadoop-1.2.1-1.x86_64.rpm --force"
+  - shell: "mkdir /nn1"
+    ignore_errors: yes
+
+  - name: "configuring core-site.xml file in name node"
+    template:
+            dest: "/etc/hadoop/core-site.xml"
+            src: "/root/ans-hadoop/namenode/core-site.xml"
+
+  - name: "configuring hdfs-site.xml file in name node"
+    template:
+             dest: "/etc/hadoop/hdfs-site.xml"
+             src: "/root/ans-hadoop/namenode/hdfs-site.xml"
+  - name: "format namenode folder"
+    shell: "echo Y | hadoop namenode -format"
+    ignore_errors: yes
+
+
+  - name: "stopping hadoop service in namenode"
+    shell: "hadoop-daemon.sh stop namenode"
+    ignore_errors: yes
+  - name: "starting hadoop service in namenode"
+    shell: "hadoop-daemon.sh start namenode"
+  - name: "datanode status"
+    shell: "jps"
+    register: name_status
+  - name: "Printing Status"
+    debug:
+      var: name_status.stdout_lines
+
+- hosts: datanode
